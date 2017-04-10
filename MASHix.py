@@ -197,8 +197,8 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 		if temporary_list:
 			x += len(temporary_list)
 			## Added new sequence string in order to parse easier within visualization_functions.js
-			string_sequence = "{}_{}".format(seq_accession, sequence_info[ref_accession][1]) ##stores acession and lenght to json
-			master_dict[ref_accession]=temporary_list
+			string_sequence = "{}_{}".format(seq_accession, sequence_info[seq_accession][1]) ##stores acession and lenght to json
+			master_dict[string_sequence]=temporary_list
 		lists_traces.append(trace_list)
 
 	out_file.write(json.dumps(master_dict))
