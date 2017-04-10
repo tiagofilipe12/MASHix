@@ -9,14 +9,6 @@ Note: each header in fasta is considered a reference.
 
 ### Dependencies:
 
-* python2.7 and packages commonly distributed along with it.
-
-* **tqdm** - If you have not installed it yet, just run this command in terminal: _pip install tqdm_ (you may need sudo permissions or specify _--user_ option to _pip install_ in order to install it locally).
-
-* **numpy** - If you have not installed it yet, just run this command in terminal: _pip install numpy (you may need sudo permissions or specify _--user_ option to _pip install_ in order to install it locally).
-
-* **plotly** - If you have not installed it yet, just run this command in terminal: _pip install plotly (you may need sudo permissions or specify _--user_ option to _pip install_ in order to install it locally).
-
 * **Mash** - You can download mash version 1.1.1 directly here: [linux](https://github.com/marbl/Mash/releases/download/v1.1.1/mash-Linux64-v1.1.1.tar.gz) and [OSX](https://github.com/marbl/Mash/releases/download/v1.1.1/mash-OSX64-v1.1.1.tar.gz). Other releases were not tested but may be downloaded in Mash git [releases page](https://github.com/marbl/Mash/releases).
 
 Note: This script exports a JSON file to be loaded with [VivaGraphJS](https://github.com/anvaka/VivaGraphJS) in order to plot distances between genomes (example file is provided in modules/import\_to\_vivagraph.json). Altough, there is no need to load additional modules since they are provided along with the _pATLAS.html_ in modules.
