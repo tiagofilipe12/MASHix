@@ -177,26 +177,26 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 	for infile in list_mash_files:
 		input_f = open(os.path.join(in_folder, infile),'r')
 		temporary_list = []
-		trace_list=[]	## list to append every distance value with p-value>0.05 in each sequence/genome	
+		trace_list=[]	## list to append every distance value with p-value and mash dist specified in each sequence/genome	
 		for line in input_f:
 			tab_split = line.split("\t")
 			#gi = "_".join(tab_split[0].strip().split("_")[0:2])
-			accession = "_".join(linesplit[3:5])
-			sequence = "_".join(tab_split[1].strip().split("_")[0:2])
+			ref_accession = "_".join(tab_split[0].strip().split("_")[3:5])
+			seq_accession = "_".join(tab_split[1].strip().split("_")[3:5])
 			mash_dist = tab_split[2].strip()
 			p_value = tab_split[3].strip()
 			## Added new reference string in order to parse easier within visualization_functions.js
-			string_reference = "{}_{}_{}".format(reference, sequence_info[accession][0], sequence_info[accession][1])
+			string_reference = "{}_{}".format(ref_accession, sequence_info[ref_accession][1]) ##stores acession and lenght to json
 			## there is no need to store all values since we are only interested in representing the significant ones 
 			## and those that correlate well with ANI (mashdist<=0.1)
-			if float(p_value) < float(pvalue) and reference != sequence and float(mash_dist) < float(mashdist):
+			if float(p_value) < float(pvalue) and reference != seq_accession and float(mash_dist) < float(mashdist):
 				temporary_list.append([string_reference,mash_dist])
 				trace_list.append(float(mash_dist))
 		if temporary_list:
 			x += len(temporary_list)
 			## Added new sequence string in order to parse easier within visualization_functions.js
-			string_sequence = "{}_{}_{}".format(sequence, sequence_info[accession][0], sequence_info[accession][1])
-			master_dict[accession]=temporary_list
+			string_sequence = "{}_{}".format(seq_accession, sequence_info[ref_accession][1]) ##stores acession and lenght to json
+			master_dict[ref_accession]=temporary_list
 		lists_traces.append(trace_list)
 
 	out_file.write(json.dumps(master_dict))
