@@ -199,10 +199,24 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 			## Added new sequence string in order to parse easier within visualization_functions.js
 			string_sequence = "{}_{}".format(seq_accession, sequence_info[seq_accession][1]) ##stores acession and lenght to json
 			master_dict[string_sequence]=temporary_list
+			## adds an entry to postgresql database
+			## but first lets parse some variables used for the database
+			spp_name = sequence_info[seq_accession][0]
+			length = sequence_info[seq_accession][1]
+			gi = sequence_info[seq_accession][2]
+			plasmid_name = sequence_info[seq_accession][3]
+			## actual database filling
+			row=models.Plasmid(plasmid_id=string_sequence, json_entry=json.dumps({"name":spp_name, "length":length, "gi":gi, "plasmid_name":plasmid_name}))
+			db.session.add(row)
+		## used for graphics visualization
 		lists_traces.append(trace_list)
 
+	## writes output json for loading in vivagraph
 	out_file.write(json.dumps(master_dict))
 	out_file.close()
+	
+	## commits everything yo db
+	db.session.commit()
 	print "total number of nodes = {}".format(len(master_dict.keys()))
 	print "total number of links = {}".format(x)
 	return lists_traces
