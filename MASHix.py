@@ -49,6 +49,7 @@ def search_substing(string):
 	plasmid_search = re.search('plasmid(.+?)__', string)
 	if plasmid_search:
 		plasmid_name=plasmid_search.group(1).replace("_","")
+		return plasmid_name
 
 ## Function to create a master fasta file from several fasta databases. One fasta is enought though
 def master_fasta(fastas, output_tag, mother_directory):
@@ -68,7 +69,7 @@ def master_fasta(fastas, output_tag, mother_directory):
 				length = 0 	# resets sequence length for every > found
 				line = header_fix(line)
 				linesplit = line.strip().split("_") ## splits fasta headers by _ character
-				gi = "_".join(linesplit[0:2]).replace(">","")
+				gi = "_".join(linesplit[1:2])
 				species = "_".join(linesplit[7:9])
 				## if statements to handle some exceptions already found
 				if "plasmid" in species:
@@ -214,7 +215,7 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 	## writes output json for loading in vivagraph
 	out_file.write(json.dumps(master_dict))
 	out_file.close()
-	
+
 	## commits everything yo db
 	db.session.commit()
 	print "total number of nodes = {}".format(len(master_dict.keys()))
