@@ -207,7 +207,8 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 			gi = sequence_info[seq_accession][2]
 			plasmid_name = sequence_info[seq_accession][3]
 			## actual database filling
-			row=models.Plasmid(plasmid_id=string_sequence, json_entry=json.dumps({"name":spp_name, "length":length, "gi":gi, "plasmid_name":plasmid_name}))
+			## string_sequence.split("_")[-1] is used to remove length from accession in database
+			row=models.Plasmid(plasmid_id="_".join(string_sequence.split("_")[:-1]), json_entry=json.dumps({"name":spp_name, "length":length, "gi":gi, "plasmid_name":plasmid_name}))
 			db.session.add(row)
 		## used for graphics visualization
 		lists_traces.append(trace_list)
