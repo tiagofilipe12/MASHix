@@ -1,4 +1,4 @@
-#!/home/admin/bin/db_manager/flask/bin/python
+#!/home/admin/bin/MASHix/db_manager/flask/bin/python2
 
 # -*- coding: utf-8 -*-
 import re

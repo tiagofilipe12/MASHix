@@ -1,12 +1,13 @@
-#!/usr/bin/env python
+#!db_manager/flask/bin/python
 
-## Last update: 7/4/2017
+## Last update: 10/4/2017
 ## Author: T.F. Jesus
 ## This script runs MASH in plasmid databases making a parwise diagonal matrix for each pairwise comparison between libraries
 ## Note: each header in fasta is considered a reference
 
 import argparse
 import os
+import re
 from subprocess import Popen, PIPE
 import shutil
 from multiprocessing import Pool
@@ -75,7 +76,7 @@ def master_fasta(fastas, output_tag, mother_directory):
 				elif "origin" in species:
 					species = "unknown"
 				##
-				accession = "_".join(linesplit[3:5])
+				accession = "_".join(linesplit[3:6])
 				## searches plasmid_name in line given that it may be variable its position
 				plasmid_name = search_substing(line)
 			    ## genus related functions
@@ -94,17 +95,18 @@ def master_fasta(fastas, output_tag, mother_directory):
 # Creates temporary fasta files in a tmp directory in order to give to mash the file as a unique genome to compare against all genomes
 def genomes_parser(main_fasta, output_tag, mother_directory):
 	out_folder = os.path.join(mother_directory, "tmp")
-	out_file = os.path.join(out_folder, os.path.basename(main_fasta) + "_seq" )
+	out_file = os.path.join(out_folder, os.path.basename(main_fasta)[:-4])
 	if_handle=open(main_fasta,'r')
 	list_genomes_files = []
 	out_handle = None
-	for x, line in enumerate(if_handle):		## x coupled with enumerate creates a counter for every loop
+	for x, line in enumerate(if_handle):	## x coupled with enumerate creates a counter for every loop
+		linesplit = line.strip().split("_")
 		if line.startswith(">"):
-			gi = "_".join(tab_split[0].strip().split("_")[0:2])
+			accession = "_".join(linesplit[3:6])
 			if out_handle:
 				out_handle.close()
-			out_handle = open(os.path.join(out_file + gi), "w")
-			list_genomes_files.append(os.path.join(out_file + gi))
+			out_handle = open(os.path.join("{}_{}.fas".format(out_file,accession)), "w")
+			list_genomes_files.append(os.path.join("{}_{}.fas".format(out_file,accession)))
 			out_handle.write(line)
 		else:
 			out_handle.write(line)
@@ -153,7 +155,7 @@ def sketch_genomes(genome, mother_directory, output_tag, kmer_size):
 ## Executes mash dist
 def masher(ref_sketch, genome_sketch, output_tag, mother_directory):
 	out_folder = os.path.join(mother_directory, "genome_sketchs", "dist_files")
-	out_file = os.path.join(out_folder, "".join(os.path.basename(genome_sketch).split(".")[:-1])+"_distances.txt")
+	out_file = os.path.join(out_folder, "".join(os.path.basename(genome_sketch)[:-8])+"_distances.txt")
 	mash_command = "mash dist -p 1 {} {} > {}".format(ref_sketch,genome_sketch,out_file)
 	p=Popen(mash_command, stdout = PIPE, stderr = PIPE, shell=True)
 	p.wait()
@@ -181,15 +183,15 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 		for line in input_f:
 			tab_split = line.split("\t")
 			#gi = "_".join(tab_split[0].strip().split("_")[0:2])
-			ref_accession = "_".join(tab_split[0].strip().split("_")[3:5])
-			seq_accession = "_".join(tab_split[1].strip().split("_")[3:5])
+			ref_accession = "_".join(tab_split[0].strip().split("_")[3:6])
+			seq_accession = "_".join(tab_split[1].strip().split("_")[3:6])
 			mash_dist = tab_split[2].strip()
 			p_value = tab_split[3].strip()
 			## Added new reference string in order to parse easier within visualization_functions.js
 			string_reference = "{}_{}".format(ref_accession, sequence_info[ref_accession][1]) ##stores acession and lenght to json
 			## there is no need to store all values since we are only interested in representing the significant ones 
 			## and those that correlate well with ANI (mashdist<=0.1)
-			if float(p_value) < float(pvalue) and reference != seq_accession and float(mash_dist) < float(mashdist):
+			if float(p_value) < float(pvalue) and ref_accession != seq_accession and float(mash_dist) < float(mashdist):
 				temporary_list.append([string_reference,mash_dist])
 				trace_list.append(float(mash_dist))
 		if temporary_list:
@@ -220,7 +222,7 @@ def main():
 	
 	mash_options = parser.add_argument_group('MASH related options')
 	mash_options.add_argument('-p', '--pvalue', dest='pvalue', default="0.05", help='Provide the p-value to consider a distance significant. Default: 0.05.')
-	mash_options.add_argument('-md', '--mashdist', dest='mashdistance', required=True, default="0.1", help='Provide the maximum mash distance to be parsed to the matrix. Default: 0.1.')
+	mash_options.add_argument('-md', '--mashdist', dest='mashdistance', default="0.1", help='Provide the maximum mash distance to be parsed to the matrix. Default: 0.1.')
 	
 	other_options = parser.add_argument_group('Other options')
 	other_options.add_argument('-rm', '--remove', dest='remove', action='store_true', help='Remove any temporary files and folders not needed (not present in results subdirectory).')
