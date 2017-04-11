@@ -32,9 +32,9 @@ The first thing you have to do is run MASHix.py in order to calculate distances 
 
 #### MASH related options:
 
-**'-p'**,**'--mashdist'** - 'Provide the p-value to consider a distance significant. Default: 0.05'
+**'-p'**,**'--pvalue'** - 'Provide the p-value to consider a distance significant. Default: 0.05'
 
-**'-md'**,**'-mashdist'** - 'Provide the maximum mash distance to be parsed to the matrix. Default:0.1'
+**'-md'**,**'--mashdist'** - 'Provide the maximum mash distance to be parsed to the matrix. Default:0.1'
 
 #### Other options:
 
