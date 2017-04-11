@@ -44,6 +44,8 @@ The first thing you have to do is run MASHix.py in order to calculate distances 
 
 **'-hist'**, **'--histograms'** - 'Checks the distribution of distances values ploting histograms.'
 
+---
+
 ### Database customization:
 
 #### I don't like database name! How do I change it?
@@ -62,6 +64,8 @@ Go to db_manager/db_app/models.py and edit the [line 7](https://github.com/tiago
  __tablename__ = "<custom_table_name>"
 ```
 
+---
+
 ### Database migration from one server to another
 
 #### Database export
@@ -74,4 +78,16 @@ pg_dump <db_name> > <file_name.sql>
 
 ```
 psql -U <user_name> -d <db_name> -f <file_name.sql>
+```
+
+---
+
+### Supplementary scripts
+
+#### taxa_fetch.py
+
+This script is used to parse ncbi taxonomy to retrieve families and orders given an input list of genera of bacteria (list generated also by MASHix.py as ".lst" file).
+
+```
+family_fetch.py <names.dmp> <nodes.dmp> <genera.lst>
 ```
