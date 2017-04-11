@@ -49,7 +49,7 @@ The first thing you have to do is run MASHix.py in order to calculate distances 
 Go to db_manager/config_default.py and edit the following line:
 
 ```python
-[line 5]: SQLALCHEMY_DATABASE_URI = 'postgresql:///<custom_database_name>'
+[#L5](https://github.com/tiagofilipe12/MASHix/blob/master/db_manager/config_default.py): SQLALCHEMY_DATABASE_URI = 'postgresql:///<custom_database_name>'
 ```
 
 #### I don't like table name inside database! How do I change it?
@@ -57,6 +57,6 @@ Go to db_manager/config_default.py and edit the following line:
 Go to db_manager/db_app/models.py and edit the following line:
 
 ```python
-[line 7]: __tablename__ = "<custom_table_name>"
+[#L7]: __tablename__ = "<custom_table_name>"
 ```
 
