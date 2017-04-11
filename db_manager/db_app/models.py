@@ -13,4 +13,6 @@ class Plasmid(db.Model):
 
 ## in order to add an entry to the database one should use something like the example below
 
-#models.Plasmid(plasmid_id='1345', json=json.dumps({"names":"buh", "distances":{"gi_1":"21388213", "gi_2":"398393"}}))
+# models.Plasmid(plasmid_id='1345', json=json.dumps({"names":"buh", "distances":{"gi_1":"21388213", "gi_2":"398393"}}))
+# db.session.add(row)
+# db.session.commit()
