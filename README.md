@@ -43,3 +43,19 @@ The first thing you have to do is run MASHix.py in order to calculate distances 
 **'-hist'**, **'--histograms'** - 'Checks the distribution of distances values ploting histograms.'
 
 
+#### I don't like database name! How do I change it?
+
+Go to db_manager/config_default.py and edit the following line:
+
+```python
+SQLALCHEMY_DATABASE_URI = 'postgresql:///<custom_database_name>'
+```
+
+#### I don't like table name inside database! How do I change it?
+
+Go to db_manager/db_app/models.py and edit the following line:
+
+```python
+__tablename__ = "<custom_table_name>"
+```
+
