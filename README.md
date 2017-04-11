@@ -89,5 +89,5 @@ psql -U <user_name> -d <db_name> -f <file_name.sql>
 This script is used to parse ncbi taxonomy to retrieve families and orders given an input list of genera of bacteria (list generated also by MASHix.py as ".lst" file).
 
 ```
-family_fetch.py <names.dmp> <nodes.dmp> <genera.lst>
+taxa_fetch.py <names.dmp> <nodes.dmp> <genera.lst>
 ```
