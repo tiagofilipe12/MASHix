@@ -11,6 +11,8 @@ Note: each header in fasta is considered a reference.
 
 * **Mash** - You can download mash version 1.1.1 directly here: [linux](https://github.com/marbl/Mash/releases/download/v1.1.1/mash-Linux64-v1.1.1.tar.gz) and [OSX](https://github.com/marbl/Mash/releases/download/v1.1.1/mash-OSX64-v1.1.1.tar.gz). Other releases were not tested but may be downloaded in Mash git [releases page](https://github.com/marbl/Mash/releases).
 
+* **Postgresql** - This script uses Postgres database to store the database - [releases page](https://www.postgresql.org/download/)
+
 Note: This script exports a JSON file to be loaded with [VivaGraphJS](https://github.com/anvaka/VivaGraphJS) in order to plot distances between genomes (example file is provided in modules/import\_to\_vivagraph.json). Altough, there is no need to load additional modules since they are provided along with the _pATLAS.html_ in modules.
 
 
@@ -60,3 +62,16 @@ Go to db_manager/db_app/models.py and edit the [line 7](https://github.com/tiago
  __tablename__ = "<custom_table_name>"
 ```
 
+### Database migration from one server to another
+
+#### Database export
+
+```
+pg_dump <db_name> > <file_name.sql>
+```
+
+#### Database import
+
+```
+psql -U <user_name> -d <db_name> -f <file_name.sql>
+```
