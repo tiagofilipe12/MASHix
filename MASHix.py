@@ -84,7 +84,8 @@ def master_fasta(fastas, output_tag, mother_directory):
 				genus = linesplit[7]
 				genera.append(genus)
 			else:
-				length += len(line)	## necessary since fasta sequences may be spread in multiple lines
+				## had to add a method to remove \n characteres from the counter for sequence length
+				length += len(line.replace("\n",""))	## necessary since fasta sequences may be spread in multiple lines
 			master_fasta.write(line)
 		sequence_info[accession] = (species, str(length), gi, plasmid_name)	## adds to dict last entry of each input file
 	master_fasta.close()
