@@ -1,6 +1,6 @@
-#!db_manager/flask/bin/python
+#!/usr/bin/env python2
 
-## Last update: 10/4/2017
+## Last update: 17/4/2017
 ## Author: T.F. Jesus
 ## This script runs MASH in plasmid databases making a parwise diagonal matrix for each pairwise comparison between libraries
 ## Note: each header in fasta is considered a reference
@@ -15,7 +15,7 @@ from functools import partial
 import tqdm
 import operator	
 from utils.hist_util import plot_histogram
-#import utils.family_fetch
+#import utils.taxa_fetch
 from operator import itemgetter
 import json
 from db_manager.db_app import db, models
@@ -220,6 +220,7 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 
 	## commits everything yo db
 	db.session.commit()
+	db.session.close()
 	print "total number of nodes = {}".format(len(master_dict.keys()))
 	print "total number of links = {}".format(x)
 	return lists_traces

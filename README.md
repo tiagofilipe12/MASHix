@@ -13,6 +13,8 @@ Note: each header in fasta is considered a reference.
 
 * **Postgresql** - This script uses Postgres database to store the database - [releases page](https://www.postgresql.org/download/)
 
+To install all other dependencies just run: _pip install -r requirements.txt_
+
 Note: This script exports a JSON file to be loaded with [VivaGraphJS](https://github.com/anvaka/VivaGraphJS) in order to plot distances between genomes (example file is provided in modules/import\_to\_vivagraph.json). Altough, there is no need to load additional modules since they are provided along with the _pATLAS.html_ in modules.
 
 
@@ -22,27 +24,35 @@ The first thing you have to do is run MASHix.py in order to calculate distances 
 
 #### Main options:
 
-**'-i'**,**'--input_references'** - 'Provide the input fasta files to parse. This will inputs will be joined in a master fasta.'
+```
+'-i','--input_references' - 'Provide the input fasta files to parse. This will inputs will be joined in a master fasta.'
 
-**'-o'**,**'--output'** - 'Provide an output tag'
+'-o','--output' - 'Provide an output tag'
 
-**'-t'**, **'--threads'** - 'Provide the number of threads to be used'
+'-t', '--threads' - 'Provide the number of threads to be used'
+```
 
 #### Bowtie related options:
 
-**'-k'**,**'--kmers'** - 'Provide the number of k-mers to be provided to mash sketch. Default: 21'
+```
+'-k','--kmers' - 'Provide the number of k-mers to be provided to mash sketch. Default: 21'
+```
 
 #### MASH related options:
 
-**'-p'**,**'--pvalue'** - 'Provide the p-value to consider a distance significant. Default: 0.05'
+```
+'-p','--pvalue' - 'Provide the p-value to consider a distance significant. Default: 0.05'
 
-**'-md'**,**'--mashdist'** - 'Provide the maximum mash distance to be parsed to the matrix. Default:0.1'
+'-md','--mashdist' - 'Provide the maximum mash distance to be parsed to the matrix. Default:0.1'
+```
 
 #### Other options:
 
-**'-no_rm'**, **'--no-remove'** - 'Specify if you do not want to remove the output concatenated fasta.'
+```
+'-no_rm', '--no-remove' - 'Specify if you do not want to remove the output concatenated fasta.'
 
-**'-hist'**, **'--histograms'** - 'Checks the distribution of distances values ploting histograms.'
+'-hist', '--histograms' - 'Checks the distribution of distances values ploting histograms.'
+```
 
 ---
 
