@@ -234,11 +234,10 @@ def main():
 	main_options.add_argument('-i','--input_references', dest='inputfile', nargs='+', required=True, help='Provide the input fasta files to parse.')
 	main_options.add_argument('-o','--output', dest='output_tag', required=True, help='Provide an output tag.')
 	main_options.add_argument('-t', '--threads', dest='threads', default="1", help='Provide the number of threads to be used. Default: 1.')
-	
-	bowtie_options = parser.add_argument_group('Bowtie related options')
-	bowtie_options.add_argument('-k', '--kmers', dest='kmer_size', default="21", help='Provide the number of k-mers to be provided to mash sketch. Default: 21.')
-	
+
 	mash_options = parser.add_argument_group('MASH related options')
+	mash_options.add_argument('-k', '--kmers', dest='kmer_size', default="21",
+				   help='Provide the number of k-mers to be provided to mash sketch. Default: 21.')
 	mash_options.add_argument('-p', '--pvalue', dest='pvalue', default="0.05", help='Provide the p-value to consider a distance significant. Default: 0.05.')
 	mash_options.add_argument('-md', '--mashdist', dest='mashdistance', default="0.1", help='Provide the maximum mash distance to be parsed to the matrix. Default: 0.1.')
 	

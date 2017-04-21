@@ -32,15 +32,10 @@ The first thing you have to do is run MASHix.py in order to calculate distances 
 '-t', '--threads' - 'Provide the number of threads to be used'
 ```
 
-#### Bowtie related options:
-
+#### MASH related options:
 ```
 '-k','--kmers' - 'Provide the number of k-mers to be provided to mash sketch. Default: 21'
-```
 
-#### MASH related options:
-
-```
 '-p','--pvalue' - 'Provide the p-value to consider a distance significant. Default: 0.05'
 
 '-md','--mashdist' - 'Provide the maximum mash distance to be parsed to the matrix. Default:0.1'

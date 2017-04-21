@@ -16,3 +16,8 @@ class Plasmid(db.Model):
 # models.Plasmid(plasmid_id='1345', json=json.dumps({"names":"buh", "distances":{"gi_1":"21388213", "gi_2":"398393"}}))
 # db.session.add(row)
 # db.session.commit()
+
+class Card(db.Model):
+    __tablename__ = "CARD"
+    plasmid_id = db.Column(db.String, primary_key=True)
+    json_entry = db.Column(db.JSON, index=True, unique=True)
