@@ -95,4 +95,14 @@ This script is used to parse ncbi taxonomy to retrieve families and orders given
 
 ```
 taxa_fetch.py <names.dmp> <nodes.dmp> <genera.lst>
+
+```
+
+#### card_parser.py
+This script parses card nucleotide database to psql database. This table will be called "card" inside your psql database
+
+Usage:
+
+```
+card_parser.py -i <input fastas> -db <blast database> -t <number of threads>
 ```

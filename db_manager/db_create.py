@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 from migrate.versioning import api
-from config import SQLALCHEMY_DATABASE_URI
-from config import SQLALCHEMY_MIGRATE_REPO
+from config_default import SQLALCHEMY_DATABASE_URI
+from config_default import SQLALCHEMY_MIGRATE_REPO
 from db_app import db
 import os.path
 db.create_all()

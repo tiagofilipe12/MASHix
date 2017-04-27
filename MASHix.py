@@ -218,7 +218,7 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 	out_file.write(json.dumps(master_dict))
 	out_file.close()
 
-	## commits everything yo db
+	## commits everything to db
 	db.session.commit()
 	db.session.close()
 	print "total number of nodes = {}".format(len(master_dict.keys()))
