@@ -1,0 +1,14 @@
+# Logs and databases #
+######################
+*.sql
+
+# OS generated files #
+######################
+*.pyc
+./utils/*.pyc
+./db_manager/*.pyc
+./db_manager/db_app/*.pyc
+
+# Specific directories #
+########################
+/.idea/*
