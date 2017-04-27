@@ -7,7 +7,7 @@ import os
 import sys
 
 ## change path before loading modules
-sys.path.append(os.path.join(os.path.dirname(__file__),".."))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
 
 from db_manager.db_app import db, models
 
@@ -50,27 +50,33 @@ or instead of ARO something like Inc:, rep:, MOB:
 '''
 
 def output_json(dict_main_json, dic_length, output_list, infile):
-    #print dic_length
-    # dict_main_json = {}
     for blast_out in output_list:
         bout_file = open(blast_out, "r")
         for line in bout_file:
             list_json_entries=[]
             tab_split = line.split("\t")
-            ARO_accession = tab_split[0].split("|")[4].strip()
-            length = float(tab_split[3].strip())
-            #print dic_length
-            perc_fasta_cov = length/dic_length[ARO_accession]
-            ## % identity of 0.7 and perc fasta covered 0.7
-            if float(tab_split[2].strip()) >= 70 and perc_fasta_cov >= 0.7:
-                NCBI_accession = tab_split[1]
-                ARO_gb = tab_split[0].split("|")[1]
-                ARO_name = tab_split[0].split("|")[5]
-                list_json_entries=[ARO_accession, ARO_gb, ARO_name]
-                if NCBI_accession in dict_main_json.keys():
-                    dict_main_json[NCBI_accession].append(list_json_entries)
-                else:
-                    dict_main_json[NCBI_accession] = list_json_entries
+            ARO_accession = tab_split[0].split("|")[-2].strip()
+            ARO_NCBI_accession = tab_split[0].split("|")[1].strip()
+            dic_key = "{}_{}".format(ARO_accession, ARO_NCBI_accession)
+            ''' used column 8 with end of alignment in query since indels
+            can be problematic when counting total alignment in column 4 '''
+            length = float(tab_split[7].strip())
+            if length > dic_length[dic_key]:
+                print ARO_accession
+                print length
+                print dic_length[dic_key]
+                break
+            perc_fasta_cov = length/float(dic_length[dic_key])
+            identity_fasta = float(tab_split[2].strip())
+            NCBI_accession = tab_split[1]
+            ARO_gb = tab_split[0].split("|")[1]
+            ARO_name = tab_split[0].split("|")[5]
+            list_json_entries=[ARO_accession, ARO_gb, ARO_name,
+                               identity_fasta, perc_fasta_cov]
+            if NCBI_accession in dict_main_json.keys():
+                dict_main_json[NCBI_accession].append(list_json_entries)
+            else:
+                dict_main_json[NCBI_accession] = list_json_entries
 
     return dict_main_json
 
@@ -93,16 +99,19 @@ def get_length_fasta(dic_lenght, input_fasta_name):
         if line.startswith(">"):
             line_split = line.split("|")
             if seq_lenght != 0:
-                dic_lenght[stored_aro] = seq_lenght
+                dic_lenght[stored_both] = seq_lenght + 1
             seq_lenght = 0
             stored_aro = line_split[-2].strip()
+            stored_acc = line_split[1].strip()
+            stored_both = "{}_{}".format(stored_aro, stored_acc)
         else:
-            for x,char in enumerate(line):
+            for x,char in enumerate(line.replace("\n","")):
                 pass
+            ## in the end we have to sum 1 since x starts at 0
             seq_lenght += x
     ## added for the final iteration of the loop
     if seq_lenght != 0:
-        dic_lenght[stored_aro] = seq_lenght
+        dic_lenght[stored_both] = seq_lenght + 1
     return dic_lenght
 
 def main():

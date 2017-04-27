@@ -13,10 +13,10 @@ import shutil
 from multiprocessing import Pool
 from functools import partial
 import tqdm
-import operator	
+#import operator
 from utils.hist_util import plot_histogram
 #import utils.taxa_fetch
-from operator import itemgetter
+#from operator import itemgetter
 import json
 from db_manager.db_app import db, models
 

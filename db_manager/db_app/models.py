@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import JSON
 class Plasmid(db.Model):
     __tablename__ = "plasmids"
     plasmid_id = db.Column(db.String, primary_key=True)
-    json_entry = db.Column(JSON, index=True, unique=True)
+    json_entry = db.Column(JSON)
 
     def __repr__(self):
         return '<Plasmid %r>' % (self.json_entry)
@@ -20,7 +20,7 @@ class Plasmid(db.Model):
 class Card(db.Model):
     __tablename__ = "card"
     plasmid_id = db.Column(db.String, primary_key=True)
-    json_entry = db.Column(JSON, index=True, unique=True)
+    json_entry = db.Column(JSON)
 
     def __repr__(self):
-        return '<Card %r>' % (self.json_entry)
+       return '<Card %r>' % (self.json_entry)
