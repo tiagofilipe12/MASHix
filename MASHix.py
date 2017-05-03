@@ -51,7 +51,7 @@ def search_substing(string):
 		plasmid_name=plasmid_search.group(1).replace("_","")
 		return plasmid_name
 
-## Function to create a master fasta file from several fasta databases. One fasta is enought though
+## Function to create a master fasta file from several fasta databases. One fasta is enough though
 def master_fasta(fastas, output_tag, mother_directory):
 	out_file = os.path.join(mother_directory, "master_fasta_{}.fas".format(output_tag))
 	master_fasta = open(out_file, "w")
