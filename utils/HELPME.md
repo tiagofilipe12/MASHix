@@ -8,11 +8,11 @@ Description: This script allows blast outputs to be parsed to the database. Note
 
 ### Options:
 
-'''
+```
 -i; --input - Provide the input blast output files in tabular format.
 
 -c; --card - f - If the input query is card please use this option.
-'''
+```
 
 Note: other classes will be added as mutually exclusive with card in future implementations
 
