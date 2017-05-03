@@ -65,29 +65,30 @@ def master_fasta(fastas, output_tag, mother_directory):
 		for x,line in enumerate(fasta):
 			if line.startswith(">"):
 				if x != 0:
-					sequence_info[accession] = (species, length, gi, plasmid_name)	#outputs dict at the beggining of each new entry
+					sequence_info[accession] = (species, length, plasmid_name)	#outputs dict at the begining of each new entry
 				length = 0 	# resets sequence length for every > found
 				line = header_fix(line)
 				linesplit = line.strip().split("_") ## splits fasta headers by _ character
-				gi = "_".join(linesplit[1:2])
-				species = "_".join(linesplit[7:9])
+				## gi = "_".join(linesplit[1:2])
+				species = "_".join(linesplit[5:7])
 				## if statements to handle some exceptions already found
 				if "plasmid" in species:
 					species = "unknown"
 				elif "origin" in species:
 					species = "unknown"
 				##
-				accession = "_".join(linesplit[3:6])
+				accession = "_".join(linesplit[1:4])
 				## searches plasmid_name in line given that it may be variable its position
 				plasmid_name = search_substing(line)
 			    ## genus related functions
-				genus = linesplit[7]
+				genus = linesplit[5]
 				genera.append(genus)
 			else:
 				## had to add a method to remove \n characteres from the counter for sequence length
 				length += len(line.replace("\n",""))	## necessary since fasta sequences may be spread in multiple lines
 			master_fasta.write(line)
-		sequence_info[accession] = (species, str(length), gi, plasmid_name)	## adds to dict last entry of each input file
+		sequence_info[accession] = (species, length, plasmid_name)	## adds to
+	# dict last entry of each input file
 	master_fasta.close()
 	## writes genera list to output file
 	genus_output.write('\n'.join(str(i) for i in list(set(genera))))
@@ -104,7 +105,7 @@ def genomes_parser(main_fasta, output_tag, mother_directory):
 	for x, line in enumerate(if_handle):	## x coupled with enumerate creates a counter for every loop
 		linesplit = line.strip().split("_")
 		if line.startswith(">"):
-			accession = "_".join(linesplit[3:6])
+			accession = "_".join(linesplit[1:4])
 			if out_handle:
 				out_handle.close()
 			out_handle = open(os.path.join("{}_{}.fas".format(out_file,accession)), "w")
@@ -185,8 +186,8 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 		for line in input_f:
 			tab_split = line.split("\t")
 			#gi = "_".join(tab_split[0].strip().split("_")[0:2])
-			ref_accession = "_".join(tab_split[0].strip().split("_")[3:6])
-			seq_accession = "_".join(tab_split[1].strip().split("_")[3:6])
+			ref_accession = "_".join(tab_split[0].strip().split("_")[1:4])
+			seq_accession = "_".join(tab_split[1].strip().split("_")[1:4])
 			mash_dist = tab_split[2].strip()
 			p_value = tab_split[3].strip()
 			## Added new reference string in order to parse easier within visualization_functions.js
