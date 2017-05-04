@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-## Last update: 17/4/2017
+## Last update: 4/5/2017
 ## Author: T.F. Jesus
 ## This script runs MASH in plasmid databases making a parwise diagonal matrix for each pairwise comparison between libraries
 ## Note: each header in fasta is considered a reference
@@ -35,10 +35,10 @@ def output_tree(infile, tag):
 def folderexist(directory):
 	if not directory.endswith("/"):
 		directory = directory + "/"
-	if not os.path.exists(os.path.join(directory)):		
+	if not os.path.exists(os.path.join(directory)):
 		os.makedirs(os.path.join(directory))
 
-## Function to fix several issues that fasta header names can have with some programs 
+## Function to fix several issues that fasta header names can have with some programs
 def header_fix(input_header):
 	problematic_characters = ["|", " ", ",", ".", "(", ")", "'", "/","[","]",":","{","}"]
 	for char in problematic_characters:
@@ -122,15 +122,15 @@ def genomes_parser(main_fasta, output_tag, mother_directory):
 def sketch_references(inputfile, output_tag, threads, kmer_size, mother_directory):
 	out_folder = os.path.join(mother_directory, "reference_sketch")
 	out_file = os.path.join(out_folder, output_tag +"_reference")
-	sketcher_command = ["mash", 
-						"sketch", 
-						"-o", 
-						out_file, 
-						"-k", 
-						kmer_size, 
-						"-p", 
-						threads, 
-						"-i", 
+	sketcher_command = ["mash",
+						"sketch",
+						"-o",
+						out_file,
+						"-k",
+						kmer_size,
+						"-p",
+						threads,
+						"-i",
 						inputfile]
 	p=Popen(sketcher_command, stdout = PIPE, stderr = PIPE)
 	p.wait()
@@ -147,8 +147,8 @@ def sketch_genomes(genome, mother_directory, output_tag, kmer_size):
 						out_file,
 						"-k",
 						kmer_size,
-						"-p", 
-						"1",		## threads are 1 here because multiprocessing is faster 
+						"-p",
+						"1",		## threads are 1 here because multiprocessing is faster
 						"-i",
 						genome]
 	p=Popen(sketcher_command, stdout = PIPE, stderr = PIPE)
@@ -164,7 +164,7 @@ def masher(ref_sketch, genome_sketch, output_tag, mother_directory):
 	p.wait()
 	return out_file
 
-def multiprocess_mash(ref_sketch, main_fasta, output_tag, kmer_size, mother_directory, genome):	
+def multiprocess_mash(ref_sketch, main_fasta, output_tag, kmer_size, mother_directory, genome):
 	genome_sketch = sketch_genomes(genome, mother_directory, output_tag, kmer_size)
 	mash_output = masher(ref_sketch, genome_sketch, output_tag, mother_directory)
 
@@ -182,7 +182,7 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 	for infile in list_mash_files:
 		input_f = open(os.path.join(in_folder, infile),'r')
 		temporary_list = []
-		trace_list=[]	## list to append every distance value with p-value and mash dist specified in each sequence/genome	
+		trace_list=[]	## list to append every distance value with p-value and mash dist specified in each sequence/genome
 		for line in input_f:
 			tab_split = line.split("\t")
 			#gi = "_".join(tab_split[0].strip().split("_")[0:2])
@@ -192,7 +192,7 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 			p_value = tab_split[3].strip()
 			## Added new reference string in order to parse easier within visualization_functions.js
 			string_reference = "{}_{}".format(ref_accession, sequence_info[ref_accession][1]) ##stores acession and lenght to json
-			## there is no need to store all values since we are only interested in representing the significant ones 
+			## there is no need to store all values since we are only interested in representing the significant ones
 			## and those that correlate well with ANI (mashdist<=0.1)
 			if float(p_value) < float(pvalue) and ref_accession != seq_accession and float(mash_dist) < float(mashdist):
 				temporary_list.append([string_reference,mash_dist])
@@ -206,11 +206,11 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 			## but first lets parse some variables used for the database
 			spp_name = sequence_info[seq_accession][0]
 			length = sequence_info[seq_accession][1]
-			gi = sequence_info[seq_accession][2]
-			plasmid_name = sequence_info[seq_accession][3]
+			#gi = sequence_info[seq_accession][2]
+			plasmid_name = sequence_info[seq_accession][2]
 			## actual database filling
 			## string_sequence.split("_")[-1] is used to remove length from accession in database
-			row=models.Plasmid(plasmid_id="_".join(string_sequence.split("_")[:-1]), json_entry=json.dumps({"name":spp_name, "length":length, "gi":gi, "plasmid_name":plasmid_name}))
+			row=models.Plasmid(plasmid_id="_".join(string_sequence.split("_")[:-1]), json_entry=json.dumps({"name":spp_name, "length":length, "plasmid_name":plasmid_name}))
 			db.session.add(row)
 		## used for graphics visualization
 		lists_traces.append(trace_list)
@@ -230,7 +230,7 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 
 def main():
 	parser = argparse.ArgumentParser(description="Compares all entries in a fasta file using MASH")
-	
+
 	main_options = parser.add_argument_group('Main options')
 	main_options.add_argument('-i','--input_references', dest='inputfile', nargs='+', required=True, help='Provide the input fasta files to parse.')
 	main_options.add_argument('-o','--output', dest='output_tag', required=True, help='Provide an output tag.')
@@ -241,7 +241,7 @@ def main():
 				   help='Provide the number of k-mers to be provided to mash sketch. Default: 21.')
 	mash_options.add_argument('-p', '--pvalue', dest='pvalue', default="0.05", help='Provide the p-value to consider a distance significant. Default: 0.05.')
 	mash_options.add_argument('-md', '--mashdist', dest='mashdistance', default="0.1", help='Provide the maximum mash distance to be parsed to the matrix. Default: 0.1.')
-	
+
 	other_options = parser.add_argument_group('Other options')
 	other_options.add_argument('-rm', '--remove', dest='remove', action='store_true', help='Remove any temporary files and folders not needed (not present in results subdirectory).')
 	other_options.add_argument('-hist', '--histograms', dest='histograms', action='store_true', help='Checks the distribution of distances values ploting histograms')
@@ -272,23 +272,23 @@ def main():
 	## runs mash related functions
 	print "***********************************"
 	print "Sketching reference..."
-	print 
+	print
 	ref_sketch=sketch_references(main_fasta,output_tag,threads,kmer_size, mother_directory)
 
 	## breaks master fasta into multiple fastas with one genome each
 	print "***********************************"
 	print "Making temporary files for each genome in fasta..."
-	print 
+	print
 	genomes = genomes_parser(main_fasta, output_tag, mother_directory)
 
 	## This must be multiprocessed since it is extremely fast to do mash against one plasmid sequence
 	print "***********************************"
 	print "Sketching genomes and running mash distances..."
-	print 
+	print
 
 	pool = Pool(int(threads)) 		# Create a multiprocessing Pool
 	mp=pool.imap_unordered(partial(multiprocess_mash, ref_sketch, main_fasta, output_tag, kmer_size, mother_directory), genomes)   # process genomes iterable with pool
-	
+
 	## loop to print a nice progress bar
 	try:
 		for _ in tqdm.tqdm(mp, total=len(genomes)):
@@ -304,7 +304,7 @@ def main():
 	print
 	print "***********************************"
 	print "Creating distance matrix..."
-	print 
+	print
 	lists_traces=mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist)
 
 	## remove master_fasta
@@ -317,7 +317,7 @@ def main():
 			if d != "results":
 				shutil.rmtree(os.path.join(mother_directory, d))
 
-	## Histograms  
+	## Histograms
 	if args.histograms:
 		print "***********************************"
 		print "Outputing histograms..."
