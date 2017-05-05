@@ -211,7 +211,9 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 			## actual database filling
 			## string_sequence.split("_")[-1] is used to remove length from accession in database
 			row=models.Plasmid(plasmid_id="_".join(string_sequence.split("_")[:-1]), json_entry=json.dumps({"name":spp_name, "length":length, "plasmid_name":plasmid_name}))
+			#print(row)
 			db.session.add(row)
+			db.session.commit()
 		## used for graphics visualization
 		lists_traces.append(trace_list)
 
@@ -220,7 +222,7 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 	out_file.close()
 
 	## commits everything to db
-	db.session.commit()
+
 	db.session.close()
 	print "total number of nodes = {}".format(len(master_dict.keys()))
 	print "total number of links = {}".format(x)
