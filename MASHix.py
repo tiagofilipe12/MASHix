@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-## Last update: 4/5/2017
+## Last update: 5/5/2017
 ## Author: T.F. Jesus
 ## This script runs MASH in plasmid databases making a parwise diagonal matrix for each pairwise comparison between libraries
 ## Note: each header in fasta is considered a reference
@@ -168,6 +168,7 @@ def masher(ref_sketch, genome_sketch, output_tag, mother_directory):
 	mash_command = "mash dist -p 1 {} {} > {}".format(ref_sketch,genome_sketch,out_file)
 	p=Popen(mash_command, stdout = PIPE, stderr = PIPE, shell=True)
 	p.wait()
+	#return out_file
 
 def multiprocess_mash(ref_sketch, main_fasta, output_tag, kmer_size, mother_directory, genome):	
 	genome_sketch = sketch_genomes(genome, mother_directory, output_tag, kmer_size)
@@ -175,7 +176,8 @@ def multiprocess_mash(ref_sketch, main_fasta, output_tag, kmer_size, mother_dire
 
 ## calculates ths distances between pairwise genomes
 ## This function should be multiprocessed in order to retrieve several output files (as many as the specified cores specified?)
-def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
+def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist,
+						 threads):
 	## read all infiles
 	in_folder = os.path.join(mother_directory, "genome_sketchs", "dist_files")
 	out_file = open(os.path.join(mother_directory, "results",
@@ -185,49 +187,32 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 	lists_traces=[]		## list that lists all trace_lists generated
 	x=0
 
-	for infile in list_mash_files:
-		input_f = open(os.path.join(in_folder, infile),'r')
-		temporary_list = []
-		trace_list=[]	## list to append every distance value with p-value and mash dist specified in each sequence/genome	
-		for line in input_f:
-			tab_split = line.split("\t")
-			#gi = "_".join(tab_split[0].strip().split("_")[0:2])
-			ref_accession = "_".join(tab_split[0].strip().split("_")[1:4])
-			seq_accession = "_".join(tab_split[1].strip().split("_")[1:4])
-			mash_dist = tab_split[2].strip()
-			p_value = tab_split[3].strip()
-			## Added new reference string in order to parse easier within visualization_functions.js
-			string_reference = "{}_{}".format(ref_accession, sequence_info[ref_accession][1]) ##stores acession and lenght to json
-			## there is no need to store all values since we are only interested in representing the significant ones 
-			## and those that correlate well with ANI (mashdist<=0.1)
-			if float(p_value) < float(pvalue) and ref_accession != seq_accession and float(mash_dist) < float(mashdist):
-				temporary_list.append([string_reference,mash_dist])
-				trace_list.append(float(mash_dist))
-		if temporary_list:
-			x += len(temporary_list)
-			## Added new sequence string in order to parse easier within visualization_functions.js
-			string_sequence = "{}_{}".format(seq_accession, sequence_info[seq_accession][1]) ##stores acession and lenght to json
-			if string_reference in master_dict.keys():
-				print(string_reference + "problematic key")
-			else:
-				master_dict[string_sequence]=temporary_list
-			## adds an entry to postgresql database
-			## but first lets parse some variables used for the database
-			spp_name = sequence_info[seq_accession][0]
-			length = sequence_info[seq_accession][1]
-			#gi = sequence_info[seq_accession][2]
-			plasmid_name = sequence_info[seq_accession][2]
-			## actual database filling
-			## string_sequence.split("_")[-1] is used to remove length from accession in database
-			row=models.Plasmid(plasmid_id="_".join(string_sequence.split("_")[:-1]), json_entry=json.dumps({"name":spp_name, "length":length, "plasmid_name":plasmid_name}))
-			#print(row)
-			#try:
-			db.session.add(row)
-			db.session.commit()
-			#except:
-			#	print(string_sequence + " already exists in db?!")
-		## used for graphics visualization
-		lists_traces.append(trace_list)
+	# new mp module
+	pool = Pool(int(threads))  # Create a multiprocessing Pool
+	mp2 = pool.map(
+		partial(multiprocess_mash_file, sequence_info, pvalue, mashdist,
+				lists_traces, in_folder, x),
+		list_mash_files)  # process list_mash_files iterable with pool
+	## loop to print a nice progress bar
+	try:
+		for _ in tqdm.tqdm(mp2, total=len(list_mash_files)):
+			pass
+	except:
+		print
+		"progress will not be tracked because of 'reasons'... check if you have tqdm package installed."
+	pool.close()
+	pool.join()  ## needed in order for the process to end before the remaining options are triggered
+
+	# new block to get trace_list and num_links
+	num_links = 0
+	trace_list = []
+	for dic in mp2:
+		master_dict.update(dic) ## sum all dicts into master_dict
+		for k,v in dic.items():
+			for x in v:
+				num_links += 1
+				dist_value = x[1]
+				trace_list.append(float(dist_value))
 
 	## writes output json for loading in vivagraph
 	out_file.write(json.dumps(master_dict))
@@ -236,15 +221,68 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 	## commits everything to db
 
 	db.session.close()
-	print "total number of nodes = {}".format(len(master_dict.keys()))
-	print "total number of links = {}".format(x)
-	return lists_traces
+	print("total number of nodes = {}".format(len(master_dict.keys())))
+	#master_dict
+	print("total number of links = {}".format(num_links))	#x
+	return trace_list
+
+def multiprocess_mash_file(sequence_info, pvalue, mashdist,
+				lists_traces, in_folder, x, infile):
+	input_f = open(os.path.join(in_folder, infile), 'r')
+	temporary_list = []
+	temp_dict = {}
+	#trace_list = []  ## list to append every distance value with p-value and
+	#  mash dist specified in each sequence/genome
+	for line in input_f:
+		tab_split = line.split("\t")
+		# gi = "_".join(tab_split[0].strip().split("_")[0:2])
+		ref_accession = "_".join(tab_split[0].strip().split("_")[1:4])
+		seq_accession = "_".join(tab_split[1].strip().split("_")[1:4])
+		mash_dist = tab_split[2].strip()
+		p_value = tab_split[3].strip()
+		## Added new reference string in order to parse easier within visualization_functions.js
+		string_reference = "{}_{}".format(ref_accession,
+										  sequence_info[ref_accession][
+											  1])  ##stores acession and lenght to json
+		## there is no need to store all values since we are only interested in representing the significant ones
+		## and those that correlate well with ANI (mashdist<=0.1)
+		if float(p_value) < float(
+				pvalue) and ref_accession != seq_accession and float(
+				mash_dist) < float(mashdist):
+			temporary_list.append([string_reference, mash_dist])
+			#trace_list.append(float(mash_dist))
+	if temporary_list:
+		x += len(temporary_list)
+		## Added new sequence string in order to parse easier within visualization_functions.js
+		string_sequence = "{}_{}".format(seq_accession,
+										 sequence_info[seq_accession][
+											 1])  ##stores acession and lenght to json
+		if string_reference in temp_dict.keys():
+			print(string_reference + "problematic key")
+		else:
+			temp_dict[string_sequence] = temporary_list
+		## adds an entry to postgresql database
+		## but first lets parse some variables used for the database
+		spp_name = sequence_info[seq_accession][0]
+		length = sequence_info[seq_accession][1]
+		# gi = sequence_info[seq_accession][2]
+		plasmid_name = sequence_info[seq_accession][2]
+		## actual database filling
+		## string_sequence.split("_")[-1] is used to remove length from accession in database
+		row = models.Plasmid(
+			plasmid_id="_".join(string_sequence.split("_")[:-1]),
+			json_entry=json.dumps({"name": spp_name, "length": length,
+								   "plasmid_name": plasmid_name}))
+		db.session.add(row)
+		db.session.commit()
+	## used for graphics visualization
+	return temp_dict #returns the temp_dict
 
 ##MAIN##
 
 def main():
-	parser = argparse.ArgumentParser(description='Compares all entries in a fasta file using MASH')
-	
+	parser = argparse.ArgumentParser(description="Compares all entries in a fasta file using MASH")
+
 	main_options = parser.add_argument_group('Main options')
 	main_options.add_argument('-i','--input_references', dest='inputfile', nargs='+', required=True, help='Provide the input fasta files to parse.')
 	main_options.add_argument('-o','--output', dest='output_tag', required=True, help='Provide an output tag.')
@@ -319,7 +357,8 @@ def main():
 	print "***********************************"
 	print "Creating distance matrix..."
 	print 
-	lists_traces=mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist)
+	lists_traces=mash_distance_matrix(mother_directory, sequence_info,
+									  pvalue, mashdist, threads)
 
 	## remove master_fasta
 	if args.remove:
