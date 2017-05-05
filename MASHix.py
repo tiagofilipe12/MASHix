@@ -65,7 +65,10 @@ def master_fasta(fastas, output_tag, mother_directory):
 		for x,line in enumerate(fasta):
 			if line.startswith(">"):
 				if x != 0:
-					sequence_info[accession] = (species, length, plasmid_name)	#outputs dict at the begining of each new entry
+					if accession in sequence_info.keys():
+						print(accession + " - duplicated entry")
+					else:
+						sequence_info[accession] = (species, length, plasmid_name)	#outputs dict at the begining of each new entry
 				length = 0 	# resets sequence length for every > found
 				line = header_fix(line)
 				linesplit = line.strip().split("_") ## splits fasta headers by _ character
@@ -87,7 +90,10 @@ def master_fasta(fastas, output_tag, mother_directory):
 				## had to add a method to remove \n characteres from the counter for sequence length
 				length += len(line.replace("\n",""))	## necessary since fasta sequences may be spread in multiple lines
 			master_fasta.write(line)
-		sequence_info[accession] = (species, length, plasmid_name)	## adds to
+		if accession in sequence_info.keys():
+			print(accession + " - duplicated entry")
+		else:
+			sequence_info[accession] = (species, length, plasmid_name)	## adds to
 	# dict last entry of each input file
 	master_fasta.close()
 	## writes genera list to output file
@@ -162,18 +168,18 @@ def masher(ref_sketch, genome_sketch, output_tag, mother_directory):
 	mash_command = "mash dist -p 1 {} {} > {}".format(ref_sketch,genome_sketch,out_file)
 	p=Popen(mash_command, stdout = PIPE, stderr = PIPE, shell=True)
 	p.wait()
-	return out_file
 
 def multiprocess_mash(ref_sketch, main_fasta, output_tag, kmer_size, mother_directory, genome):	
 	genome_sketch = sketch_genomes(genome, mother_directory, output_tag, kmer_size)
-	mash_output = masher(ref_sketch, genome_sketch, output_tag, mother_directory)
+	masher(ref_sketch, genome_sketch, output_tag, mother_directory)
 
 ## calculates ths distances between pairwise genomes
 ## This function should be multiprocessed in order to retrieve several output files (as many as the specified cores specified?)
 def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 	## read all infiles
 	in_folder = os.path.join(mother_directory, "genome_sketchs", "dist_files")
-	out_file = open(os.path.join(mother_directory, "results", "import_to_vivagraph.json"), "w")
+	out_file = open(os.path.join(mother_directory, "results",
+								 "import_to_vivagraph.json"), "w")
 	master_dict={}	## A dictionary to store all distances to all references of each sequence/genome
 	list_mash_files = [f for f in os.listdir(in_folder) if f.endswith("distances.txt")]
 	lists_traces=[]		## list that lists all trace_lists generated
@@ -201,7 +207,10 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 			x += len(temporary_list)
 			## Added new sequence string in order to parse easier within visualization_functions.js
 			string_sequence = "{}_{}".format(seq_accession, sequence_info[seq_accession][1]) ##stores acession and lenght to json
-			master_dict[string_sequence]=temporary_list
+			if string_reference in master_dict.keys():
+				print(string_reference + "problematic key")
+			else:
+				master_dict[string_sequence]=temporary_list
 			## adds an entry to postgresql database
 			## but first lets parse some variables used for the database
 			spp_name = sequence_info[seq_accession][0]
@@ -212,8 +221,11 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 			## string_sequence.split("_")[-1] is used to remove length from accession in database
 			row=models.Plasmid(plasmid_id="_".join(string_sequence.split("_")[:-1]), json_entry=json.dumps({"name":spp_name, "length":length, "plasmid_name":plasmid_name}))
 			#print(row)
+			#try:
 			db.session.add(row)
 			db.session.commit()
+			#except:
+			#	print(string_sequence + " already exists in db?!")
 		## used for graphics visualization
 		lists_traces.append(trace_list)
 
@@ -231,7 +243,7 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist):
 ##MAIN##
 
 def main():
-	parser = argparse.ArgumentParser(description="Compares all entries in a fasta file using MASH")
+	parser = argparse.ArgumentParser(description='Compares all entries in a fasta file using MASH')
 	
 	main_options = parser.add_argument_group('Main options')
 	main_options.add_argument('-i','--input_references', dest='inputfile', nargs='+', required=True, help='Provide the input fasta files to parse.')
