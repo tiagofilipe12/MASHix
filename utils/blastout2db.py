@@ -21,7 +21,7 @@ def model_selector(selected_class):
     #...
     return model_class
 
-def output_json(dict_main_json, blast_out, card):
+def output_json(dict_main_json, blast_out, card, id_param, perc_cov_param):
     '''
     This function outputs a dictionary of json entries per each Accession 
     number in database.
@@ -41,21 +41,23 @@ def output_json(dict_main_json, blast_out, card):
             break
         perc_fasta_cov = align_length/length
         identity_fasta = float(tab_split[2].strip())
-        if card:
-            ARO_accession = tab_split[0].split("|")[-2].strip()
-            ARO_gb = tab_split[0].split("|")[1]
-            ARO_name = tab_split[0].split("|")[5]
-            list_json_entries=[ARO_accession, ARO_gb, ARO_name,
-                            identity_fasta, perc_fasta_cov]
-        else:
-            print("No json formatting was specified, all db entry will be "
-                  "outputted the first column of blast output")
-            list_json_entries=[tab_split[0].strip(), identity_fasta,
-                               perc_fasta_cov]
-        if NCBI_accession in dict_main_json.keys():
-            dict_main_json[NCBI_accession].append(list_json_entries)
-        else:
-            dict_main_json[NCBI_accession] = list_json_entries
+        if identity_fasta >= float(id_param) and perc_fasta_cov >= \
+                float(perc_cov_param):
+            if card:
+                ARO_accession = tab_split[0].split("|")[-2].strip()
+                ARO_gb = tab_split[0].split("|")[1]
+                ARO_name = tab_split[0].split("|")[5]
+                list_json_entries=[ARO_accession, ARO_gb, ARO_name,
+                                identity_fasta, perc_fasta_cov]
+            else:
+                print("No json formatting was specified, all db entry will be "
+                      "outputted the first column of blast output")
+                list_json_entries=[tab_split[0].strip(), identity_fasta,
+                                   perc_fasta_cov]
+            if NCBI_accession in dict_main_json.keys():
+                dict_main_json[NCBI_accession].append(list_json_entries)
+            else:
+                dict_main_json[NCBI_accession] = list_json_entries
 
     return dict_main_json
 
@@ -83,6 +85,13 @@ def main():
                                         'files in tabular format')
     # when more than one class may be used this option has to pass to mutually
     # exclusive along with the new option
+    parser.add_argument('-id', '--identity', dest='id', required=True,
+                        help='Provide a percentage id to use as threshold for '
+                             'blast output')
+    parser.add_argument('-pc', '--percentage_cover', dest='perc_cover',
+                        required=True,
+                        help='Provide a threshold for percentage of covered '
+                             'query sequence in database sequence.')
     parser.add_argument('-c', '--card', dest='card', action='store_true',
                         help='if the input query is card please use '
                              'this option.')
@@ -107,7 +116,8 @@ def main():
     model_class = model_selector(selected_class)
 
     for blast_out in input_files:
-        output_json(dict_main_json, blast_out, args.card)
+        output_json(dict_main_json, blast_out, args.card, args.id,
+                    args.perc_cover)
 
     json_dumping(dict_main_json, model_class)
 
