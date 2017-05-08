@@ -15,7 +15,7 @@ def plot_histogram(lists_traces, output_tag, mother_directory):
 	minimum=[]
 	## parsing the list to length, average, median, max and min variables
 	for trace_list in lists_traces:
-		trace_list=[x for x in trace_list if x != 0]
+		#trace_list=[x for x in trace_list if x != 0]
 		if trace_list:
 			lengths.append(len(trace_list))
 			averages.append(numpy.mean(trace_list))
@@ -25,7 +25,8 @@ def plot_histogram(lists_traces, output_tag, mother_directory):
 	sorted_lengths=sorted(lengths, reverse=True)
 	trace_lengths = go.Histogram(x=sorted_lengths, 
 								opacity=0.75, 
-								name="total number of significant distances within sequence/genome",
+								name="total number of significant distances  "
+									 "within sequence/genome",
 								xbins=dict(start=numpy.min(sorted_lengths), 
 											size= 2, 
 											end= numpy.max(sorted_lengths)))
