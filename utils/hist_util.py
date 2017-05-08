@@ -1,4 +1,4 @@
-## Last update: 15/2/2017
+## Last update: 8/5/2017
 ## Author: T.F. Jesus
 ## This is an auxiliary script for MASHix.py, which generates histograms for the lists stored in lists_traces
 
@@ -70,15 +70,21 @@ def plot_histogram(lists_traces, output_tag, mother_directory):
 						title='Number of sequences/genomes'
 						)
 					)
-	fig = go.Figure(data=[trace_averages,trace_medians,trace_maximum,trace_minimum], layout=layout)
-	plot_url = plotly.offline.plot(fig, filename= os.path.join(mother_directory, "results", output_tag + '_avg_med_dist.html'),auto_open=False)
+	fig = go.Figure(data=[trace_averages,trace_medians,trace_maximum,
+						  trace_minimum], layout=layout)
+	plot_url = plotly.offline.plot(fig, filename= os.path.join(
+		mother_directory, "results", output_tag + '_avg_med_dist.html'),
+								   auto_open=False)
 	## second plot
 	layout2 = go.Layout(xaxis=dict(
-							title='Number of significant <i>(p-value</i> > 0.05) pairwise differences'
+							title='Number of significant <i>(p-value</i> >  '
+								  '0.05) pairwise differences'
 							),
 						yaxis=dict(
 							title='Number of sequences/genomes'
 							)
 						)
 	fig2 = go.Figure(data=[trace_lengths], layout=layout2)
-	plot_url = plotly.offline.plot(fig2, filename= os.path.join(mother_directory, "results", output_tag + '_numb_dist.html'),auto_open=False)
+	plot_url = plotly.offline.plot(fig2, filename= os.path.join(
+		mother_directory, "results", output_tag + '_numb_dist.html'),
+								   auto_open=False)
