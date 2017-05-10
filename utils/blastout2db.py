@@ -16,12 +16,13 @@ def model_selector(selected_class):
     '''
     if selected_class == "card":
         model_class = models.Card
-    #elif selected_class == "something":
-    #    model_class = models.Something()
-    #...
+    elif selected_class == "negative":
+        model_class = models.Database
+    elif selected_class == "positive":
+        model_class = models.Positive
     return model_class
 
-def output_json(dict_main_json, blast_out, card, id_param, perc_cov_param):
+def output_json(dict_main_json, blast_out, selected_class, id_param, perc_cov_param):
     '''
     This function outputs a dictionary of json entries per each Accession 
     number in database.
@@ -39,16 +40,21 @@ def output_json(dict_main_json, blast_out, card, id_param, perc_cov_param):
             print("Warning. align length > length?!")
             print(line)
             break
-        perc_fasta_cov = align_length/length
+        perc_fasta_cov = (align_length/length)*100
         identity_fasta = float(tab_split[2].strip())
-        if identity_fasta >= float(id_param) and perc_fasta_cov >= \
-                float(perc_cov_param):
-            if card:
+        if identity_fasta >= float(id_param) and perc_fasta_cov >= float(
+                perc_cov_param):
+            if selected_class == "card":
                 ARO_accession = tab_split[0].split("|")[-2].strip()
                 ARO_gb = tab_split[0].split("|")[1]
                 ARO_name = tab_split[0].split("|")[5]
                 list_json_entries=[ARO_accession, ARO_gb, ARO_name,
                                 identity_fasta, perc_fasta_cov]
+            elif selected_class == "negative" or selected_class == "positive":
+                ref_plasmid = tab_split[0].split("_")[-1].strip()
+                rep_type = "_".join(tab_split[0].split("_")[0:3])
+                list_json_entries = [ref_plasmid, rep_type, identity_fasta,
+                                     perc_fasta_cov]
             else:
                 print("No json formatting was specified, all db entry will be "
                       "outputted the first column of blast output")
@@ -58,7 +64,7 @@ def output_json(dict_main_json, blast_out, card, id_param, perc_cov_param):
                 dict_main_json[NCBI_accession].append(list_json_entries)
             else:
                 dict_main_json[NCBI_accession] = list_json_entries
-
+                
     return dict_main_json
 
 def json_dumping(dict_main_json, model_class):
@@ -66,6 +72,8 @@ def json_dumping(dict_main_json, model_class):
     This function outputs each json entry in the dictionary to the postgres 
     database with each accession number as primary key and a list of arrays  
     '''
+    print("==============================================================")
+    print("outputing to db...")
     for k in dict_main_json.keys():
         row = model_class(plasmid_id=k,
                           json_entry=json.dumps(dict_main_json[k]))
@@ -80,6 +88,7 @@ def main():
                                         "additional parameters at the end of "
                                         "default parameters - sacc and qlen."
                                         "For further information see HELPME.md")
+    mutual_parser = parser.add_mutually_exclusive_group()
     parser.add_argument('-i', '--input', dest='input', required=True,
                         nargs='+', help='Provide the input blast output '
                                         'files in tabular format')
@@ -92,9 +101,17 @@ def main():
                         required=True,
                         help='Provide a threshold for percentage of covered '
                              'query sequence in database sequence.')
-    parser.add_argument('-c', '--card', dest='card', action='store_true',
+    mutual_parser.add_argument('-c', '--card', dest='card', action='store_true',
                         help='if the input query is card please use '
                              'this option.')
+    mutual_parser.add_argument('-n', '--negative', dest='negative',
+                               action='store_true',
+                        help='provide blast results for gram negative plasmids.'
+                             'In plasmid Finder called plasmid_database')
+    mutual_parser.add_argument('-p', '--positive', dest='positive',
+                               action='store_true',
+                        help='provide blast results for gram positive plasmids.'
+                             'In plasmid Finder called plasmid_positiv')
 
     args = parser.parse_args()
     input_files = [f for f in args.input]
@@ -107,16 +124,17 @@ def main():
     # required to pass to the database
     if args.card:
         selected_class = "card"
-    #elif something:
-    #    selected_class = "something"
-    #...
+    elif args.negative:
+        selected_class = "negative"
+    elif args.positive:
+        selected_class = "positive"
     else:
         print("Error, class unknown!")
 
     model_class = model_selector(selected_class)
 
     for blast_out in input_files:
-        output_json(dict_main_json, blast_out, args.card, args.id,
+        output_json(dict_main_json, blast_out, selected_class, args.id,
                     args.perc_cover)
 
     json_dumping(dict_main_json, model_class)

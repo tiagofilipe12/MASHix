@@ -23,4 +23,20 @@ class Card(db.Model):
     json_entry = db.Column(JSON)
 
     def __repr__(self):
-       return '<Card %r>' % (self.json_entry)
+         return '<Card %r>' % (self.json_entry)
+
+class Positive(db.Model):
+    __tablename__ = "positive"
+    plasmid_id = db.Column(db.String, primary_key=True)
+    json_entry = db.Column(JSON)
+
+    def __repr__(self):
+         return '<Positive %r>' % (self.json_entry)
+
+class Database(db.Model):
+    __tablename__ = "database"
+    plasmid_id = db.Column(db.String, primary_key=True)
+    json_entry = db.Column(JSON)
+
+    def __repr__(self):
+        return '<Database %r>' % (self.json_entry)
