@@ -2,7 +2,8 @@
 
 ## Last update: 8/5/2017
 ## Author: T.F. Jesus
-## This script runs MASH in plasmid databases making a parwise diagonal matrix for each pairwise comparison between libraries
+## This script runs MASH in plasmid databases making a parwise diagonal matrix
+# for each pairwise comparison between libraries
 ## Note: each header in fasta is considered a reference
 
 import argparse
@@ -40,7 +41,8 @@ def folderexist(directory):
 	if not os.path.exists(os.path.join(directory)):		
 		os.makedirs(os.path.join(directory))
 
-## Function to fix several issues that fasta header names can have with some programs 
+## Function to fix several issues that fasta header names can have with some
+# programs
 def header_fix(input_header):
 	problematic_characters = ["|", " ", ",", ".", "(", ")", "'", "/","[","]",
 							  ":","{","}"]
@@ -54,7 +56,8 @@ def search_substing(string):
 		plasmid_name=plasmid_search.group(1).replace("_","")
 		return plasmid_name
 
-## Function to create a master fasta file from several fasta databases. One fasta is enough though
+## Function to create a master fasta file from several fasta databases. One
+# fasta is enough though
 def master_fasta(fastas, output_tag, mother_directory):
 	out_file = os.path.join(mother_directory, "master_fasta_{}.fas".format(
 		output_tag))
@@ -74,47 +77,54 @@ def master_fasta(fastas, output_tag, mother_directory):
 						print(accession + " - duplicated entry")
 					else:
 						sequence_info[accession] = (species, length,
-													plasmid_name)	#outputs dict at the begining of each new entry
+													plasmid_name)	#outputs
+					# dict at the begining of each new entry
 				length = 0 	# resets sequence length for every > found
 				line = header_fix(line)
-				linesplit = line.strip().split("_") ## splits fasta headers by _ character
+				linesplit = line.strip().split("_") ## splits fasta headers by
+				# _ character
 				## gi = "_".join(linesplit[1:2])
 				species = "_".join(linesplit[5:7])
 				## if statements to handle some exceptions already found
-				if "plasmid" in species:
+				if "plasmid" in species.lower():
 					species = "unknown"
-				elif "origin" in species:
+				elif "origin" in species.lower():
 					species = "unknown"
 				##
 				accession = "_".join(linesplit[1:4])
-				## searches plasmid_name in line given that it may be variable its position
+				## searches plasmid_name in line given that it may be variable
+				# its position
 				plasmid_name = search_substing(line)
 			    ## genus related functions
 				genus = linesplit[5]
 				genera.append(genus)
 			else:
-				## had to add a method to remove \n characteres from the counter for sequence length
-				length += len(line.replace("\n",""))	## necessary since fasta sequences may be spread in multiple lines
+				## had to add a method to remove \n characteres from the
+				# counter for sequence length
+				length += len(line.replace("\n",""))	## necessary since
+			# fasta sequences may be spread in multiple lines
 			master_fasta.write(line)
 		if accession in sequence_info.keys():
 			print(accession + " - duplicated entry")
 		else:
-			sequence_info[accession] = (species, length, plasmid_name)	## adds to
-	# dict last entry of each input file
+			sequence_info[accession] = (species, length, plasmid_name)	## adds
+		# to dict last entry of each input file
 	master_fasta.close()
 	## writes genera list to output file
 	genus_output.write('\n'.join(str(i) for i in list(set(genera))))
 	genus_output.close()
 	return out_file, sequence_info
 
-# Creates temporary fasta files in a tmp directory in order to give to mash the file as a unique genome to compare against all genomes
+# Creates temporary fasta files in a tmp directory in order to give to mash
+# the file as a unique genome to compare against all genomes
 def genomes_parser(main_fasta, output_tag, mother_directory):
 	out_folder = os.path.join(mother_directory, "tmp")
 	out_file = os.path.join(out_folder, os.path.basename(main_fasta)[:-4])
 	if_handle=open(main_fasta,'r')
 	list_genomes_files = []
 	out_handle = None
-	for x, line in enumerate(if_handle):	## x coupled with enumerate creates a counter for every loop
+	for x, line in enumerate(if_handle):	## x coupled with enumerate creates
+		# a counter for every loop
 		linesplit = line.strip().split("_")
 		if line.startswith(">"):
 			accession = "_".join(linesplit[1:4])
@@ -152,7 +162,8 @@ def sketch_references(inputfile, output_tag, threads, kmer_size,
 #	stdout,stderr= p.communicate()
 	return out_file + ".msh"
 
-## Makes the sketch command of mash for the reads to be compare to the reference.
+## Makes the sketch command of mash for the reads to be compare to the
+# reference.
 def sketch_genomes(genome, mother_directory, output_tag, kmer_size):
 	out_folder = os.path.join(mother_directory, "genome_sketchs")
 	out_file = os.path.join(out_folder, os.path.basename(genome))
@@ -163,7 +174,8 @@ def sketch_genomes(genome, mother_directory, output_tag, kmer_size):
 						"-k",
 						kmer_size,
 						"-p", 
-						"1",		## threads are 1 here because multiprocessing is faster 
+						"1",		## threads are 1 here because
+						# multiprocessing is faster
 						"-i",
 						genome]
 	p=Popen(sketcher_command, stdout = PIPE, stderr = PIPE)
@@ -188,14 +200,16 @@ def multiprocess_mash(ref_sketch, main_fasta, output_tag, kmer_size,
 	masher(ref_sketch, genome_sketch, output_tag, mother_directory)
 
 ## calculates ths distances between pairwise genomes
-## This function should be multiprocessed in order to retrieve several output files (as many as the specified cores specified?)
+## This function should be multiprocessed in order to retrieve several output
+# files (as many as the specified cores specified?)
 def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist,
 						 threads):
 	## read all infiles
 	in_folder = os.path.join(mother_directory, "genome_sketchs", "dist_files")
 	out_file = open(os.path.join(mother_directory, "results",
 								 "import_to_vivagraph.json"), "w")
-	master_dict={}	## A dictionary to store all distances to all references of each sequence/genome
+	master_dict={}	## A dictionary to store all distances to all references of
+	#  each sequence/genome
 	list_mash_files = [f for f in os.listdir(in_folder) if f.endswith(
 		"distances.txt")]
 	#lists_traces=[]		## list that lists all trace_lists generated
@@ -215,7 +229,8 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist,
 		print("progress will not be tracked because of 'reasons'... check if "
 			  "you have tqdm package installed.")
 	pool.close()
-	pool.join()  ## needed in order for the process to end before the remaining options are triggered
+	pool.join()  ## needed in order for the process to end before the remaining
+	#  options are triggered
 
 	# new block to get trace_list and num_links
 	num_links = 0
@@ -239,7 +254,7 @@ def mash_distance_matrix(mother_directory, sequence_info, pvalue, mashdist,
 	db.session.close()
 	print("total number of nodes = {}".format(len(master_dict.keys())))
 	#master_dict
-	print("total number of links = {}".format(num_links))	#x
+	print("total number of links = {}".format(num_links))
 	return list_of_traces
 
 def multiprocess_mash_file(sequence_info, pvalue, mashdist,
@@ -255,11 +270,14 @@ def multiprocess_mash_file(sequence_info, pvalue, mashdist,
 		seq_accession = "_".join(tab_split[1].strip().split("_")[1:4])
 		mash_dist = tab_split[2].strip()
 		p_value = tab_split[3].strip()
-		## Added new reference string in order to parse easier within visualization_functions.js
+		## Added new reference string in order to parse easier within
+		#  visualization_functions.js
 		string_reference = "{}_{}".format(ref_accession,
 										  sequence_info[ref_accession][
-											  1])  ##stores acession and lenght to json
-		## there is no need to store all values since we are only interested in representing the significant ones
+											  1])  ##stores acession and lenght
+		#  to json
+		## there is no need to store all values since we are only interested in
+		# representing the significant ones
 		## and those that correlate well with ANI (mashdist<=0.1)
 		if float(p_value) < float(
 				pvalue) and ref_accession != seq_accession and float(
@@ -267,10 +285,12 @@ def multiprocess_mash_file(sequence_info, pvalue, mashdist,
 			temporary_list.append([string_reference, mash_dist])
 	if temporary_list:
 		x += len(temporary_list)
-		## Added new sequence string in order to parse easier within visualization_functions.js
+		## Added new sequence string in order to parse easier within
+		# visualization_functions.js
 		string_sequence = "{}_{}".format(seq_accession,
 										 sequence_info[seq_accession][
-											 1])  ##stores acession and lenght to json
+											 1])  ##stores acession and lenght
+		# to json
 		if string_reference in temp_dict.keys():
 			print(string_reference + "problematic key")
 		else:
@@ -282,7 +302,8 @@ def multiprocess_mash_file(sequence_info, pvalue, mashdist,
 		# gi = sequence_info[seq_accession][2]
 		plasmid_name = sequence_info[seq_accession][2]
 		## actual database filling
-		## string_sequence.split("_")[-1] is used to remove length from accession in database
+		## string_sequence.split("_")[-1] is used to remove length from
+		# accession in database
 		row = models.Plasmid(
 			plasmid_id="_".join(string_sequence.split("_")[:-1]),
 			json_entry=json.dumps({"name": spp_name, "length": length,
@@ -348,10 +369,12 @@ def main():
 													   ".fna", ".fsa", ".fa"))]
 
 	## creates output directory tree
-	output_tag = args.output_tag.replace("/","")	## if the user gives and input tag that is already a folder
+	output_tag = args.output_tag.replace("/","")	## if the user gives and
+	# input tag that is already a folder
 	mother_directory=output_tree(fastas[0], output_tag)
 
-	## checks if multiple fastas are provided or not avoiding master_fasta function
+	## checks if multiple fastas are provided or not avoiding master_fasta
+	# function
 	print "***********************************"
 	print "Creating main database..."
 	print
@@ -375,7 +398,8 @@ def main():
 	print 
 	genomes = genomes_parser(main_fasta, output_tag, mother_directory)
 
-	## This must be multiprocessed since it is extremely fast to do mash against one plasmid sequence
+	## This must be multiprocessed since it is extremely fast to do mash
+	# against one plasmid sequence
 	print "***********************************"
 	print "Sketching genomes and running mash distances..."
 	print 
@@ -393,7 +417,8 @@ def main():
 		print("progress will not be tracked because of 'reasons'... check if "
 			  "you have tqdm package installed.")
 	pool.close()
-	pool.join()		## needed in order for the process to end before the remaining options are triggered
+	pool.join()		## needed in order for the process to end before the
+	# remaining options are triggered
 	print
 	print "Finished MASH... uf uf uf!"
 
